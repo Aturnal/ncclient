@@ -1,5 +1,3 @@
-from lxml import etree
-
 from .default import DefaultDeviceHandler
 from ncclient.operations.third_party.sros.rpc import MdCliRawCommand, MdCompare
 from ncclient.xml_ import BASE_NS_1_0
@@ -7,6 +5,7 @@ from ncclient.xml_ import BASE_NS_1_0
 
 def passthrough(xml):
     return xml
+
 
 class SrosDeviceHandler(DefaultDeviceHandler):
     """

@@ -1,6 +1,7 @@
-from ncclient.xml_ import *
+from ncclient.xml_ import yang_action, SROS_GLOBAL_OPS_NS, sub_ele
 
 from ncclient.operations.rpc import RPC
+
 
 def global_operations(node):
     """Instantiate an SR OS global operation action element
@@ -14,9 +15,10 @@ def global_operations(node):
         represents the caller supplied initial node.
     """
     parent, child = yang_action('global-operations',
-            attrs={'xmlns': SROS_GLOBAL_OPS_NS})
+                                attrs={'xmlns': SROS_GLOBAL_OPS_NS})
     ele = sub_ele(child, node)
     return (parent, ele)
+
 
 class MdCliRawCommand(RPC):
     def request(self, command=None):
@@ -43,29 +45,36 @@ class MdCompare(RPC):
             path_node = sub_ele(md_compare_node, 'path')
             subtree_path_node = sub_ele(path_node, 'subtree-path')
             append_node = subtree_path_node
-            if path[0] == '/': path = path[1:]
+            if path[0] == '/':
+                path = path[1:]
             if path.split('/')[0] == "configure":
-                append_node = sub_ele(append_node, 'configure', attrs={"xmlns":"urn:nokia.com:sros:ns:yang:sr:conf"} )
+                append_node = sub_ele(append_node,
+                                     'configure',
+                                      attrs={"xmlns": "urn:nokia.com:sros:ns:yang:sr:conf"})
             else:
-                assert False, f"{path.split('/')[0]}"
+                assert False,\
+                    "Compare takes a path starting with 'configure'," +\
+                    f"not {path.split('/')[0]}"
+
             for i in path.split('/')[1:-1]:
                 if i:
                     append_node = sub_ele(append_node, i)
             # just to have a <tag></tag>, otherwise its going to be <tag/>
             sub_ele(append_node, path.split('/')[-1]).text = ""
 
-    def request(self,   src="baseline",
-                        src_type = "configuration_region",
-                        dst="candidate",
-                        dst_type = "url",
-                        response_format='xml',
-                        configuration_region = "configure",
-                        path='/'):
-        assert response_format in ["xml", "md-cli"], "Must use one of xml, json or md-cli for format. Default is 'xml'."
+    def request(self, src="baseline",
+                src_type="configuration_region",
+                dst="candidate",
+                dst_type="url",
+                response_format='xml',
+                configuration_region="configure",
+                path='/'):
+        assert response_format in ["xml", "md-cli"],\
+            "Must use one of xml, json or md-cli for format. Default is 'xml'."
         node, cmp_node = global_operations('md-compare')
-        
+
         sub_ele(cmp_node, 'format').text = response_format
-        
+
         source = sub_ele(cmp_node, 'source')
         destination = sub_ele(cmp_node, 'destination')
 
